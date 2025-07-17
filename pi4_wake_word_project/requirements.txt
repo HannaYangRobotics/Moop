@@ -1,0 +1,22 @@
+# Wake Word Detection System Requirements
+# For Pi4 with I2S microphone
+
+# Core audio processing
+pyaudio>=0.2.11
+librosa>=0.10.0
+soundfile>=0.12.1
+numpy>=1.21.0
+
+# Machine learning
+tensorflow>=2.10.0
+tensorflow-lite>=2.10.0
+
+# Optional: For better audio processing
+scipy>=1.9.0
+
+# Optional: For visualization and debugging
+matplotlib>=3.5.0
+
+# Note: Some packages may need system dependencies on Pi4:
+# sudo apt-get install portaudio19-dev python3-pyaudio
+# sudo apt-get install libasound2-dev 
