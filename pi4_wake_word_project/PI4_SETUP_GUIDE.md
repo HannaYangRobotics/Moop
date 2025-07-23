@@ -1,70 +1,31 @@
-# Pi4 Wake Word Detection Setup Guide
+# Pi4 Wake Word Detection Setup Guide (USB Microphone)
 
-This guide will help you set up the wake word detection system on your Raspberry Pi 4 with an I2S microphone.
+This guide will help you set up the wake word detection system on your Raspberry Pi 4 with a USB microphone.
 
 ## Prerequisites
 
 - Raspberry Pi 4 (8GB RAM recommended)
-- I2S microphone (e.g., INMP441, SPH0645LM4H-B, etc.)
+- USB microphone (plug-and-play)
 - MicroSD card with Raspberry Pi OS (Bullseye or newer)
 - Speaker or audio output device
 
 ## Step 1: Hardware Setup
 
-### I2S Microphone Connection
+### USB Microphone Connection
 
-Connect your I2S microphone to the Pi4 GPIO pins:
+1. Plug your USB microphone into any available USB port on the Pi4.
+2. No wiring or special configuration is needed.
 
-| I2S Pin | Pi4 GPIO | Description |
-|---------|----------|-------------|
-| VCC     | 3.3V     | Power       |
-| GND     | GND      | Ground      |
-| BCLK    | GPIO 18  | Bit Clock   |
-| LRCLK   | GPIO 19  | Left/Right Clock |
-| SD      | GPIO 20  | Data        |
+## Step 2: Verify USB Microphone Detection
 
-**Note:** Pin numbers may vary depending on your I2S microphone. Check your microphone's datasheet.
-
-## Step 2: Enable I2S Audio
-
-### Edit Boot Configuration
-
-1. Open the boot configuration file:
+1. Open a terminal and run:
    ```bash
-   sudo nano /boot/config.txt
+   arecord -l
    ```
-
-2. Add these lines at the end of the file:
+2. You should see your USB microphone listed, e.g.:
    ```
-   # Enable I2S
-   dtoverlay=i2s-mmap
-   
-   # Enable I2S audio interface
-   dtoverlay=googlevoicehat-soundcard
-   
-   # Alternative: For generic I2S microphone
-   # dtoverlay=i2s-mmap
-   # dtparam=i2s=on
+   card 1: USB [USB Audio Device], device 0: USB Audio [USB Audio]
    ```
-
-3. Save and reboot:
-   ```bash
-   sudo reboot
-   ```
-
-### Verify I2S Setup
-
-After reboot, check if I2S is enabled:
-```bash
-# Check if I2S device is recognized
-ls /proc/asound/card*
-
-# List audio devices
-aplay -l
-arecord -l
-```
-
-You should see your I2S microphone listed as an audio device.
 
 ## Step 3: Install System Dependencies
 
@@ -111,82 +72,19 @@ pip install -r requirements.txt
 pip install tensorflow-aarch64
 ```
 
-## Step 6: Test Audio Setup
+## Step 6: Test USB Microphone Setup
 
-### Test I2S Microphone
+### Test USB Microphone
 
-Create a simple test script to verify your I2S microphone is working:
+Run the provided test script to verify your USB microphone is working:
 
-```python
-# test_audio.py
-import pyaudio
-import wave
-import time
-
-# Audio parameters
-CHUNK = 1024
-FORMAT = pyaudio.paFloat32
-CHANNELS = 1
-RATE = 16000
-RECORD_SECONDS = 5
-
-p = pyaudio.PyAudio()
-
-# List available devices
-print("Available audio devices:")
-for i in range(p.get_device_count()):
-    info = p.get_device_info_by_index(i)
-    print(f"  {i}: {info['name']}")
-
-# Find I2S device
-i2s_device = None
-for i in range(p.get_device_count()):
-    info = p.get_device_info_by_index(i)
-    if 'i2s' in info['name'].lower() or 'mic' in info['name'].lower():
-        i2s_device = i
-        break
-
-if i2s_device is None:
-    print("No I2S device found, using default input")
-    i2s_device = p.get_default_input_device_info()['index']
-
-print(f"Using device: {p.get_device_info_by_index(i2s_device)['name']}")
-
-# Record audio
-stream = p.open(format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
-                input=True,
-                input_device_index=i2s_device,
-                frames_per_buffer=CHUNK)
-
-print("Recording...")
-frames = []
-
-for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-    data = stream.read(CHUNK)
-    frames.append(data)
-
-print("Done recording")
-
-stream.stop_stream()
-stream.close()
-p.terminate()
-
-# Save recording
-with wave.open("test_recording.wav", 'wb') as wf:
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(p.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-
-print("Test recording saved as test_recording.wav")
-```
-
-Run the test:
 ```bash
 python test_audio.py
 ```
+
+- The script will list all audio devices and attempt to auto-select your USB mic.
+- It will record a short audio clip and save it as `test_recording.wav`.
+- Play back the file to verify audio quality.
 
 ## Step 7: Test Wake Word Detection
 
@@ -210,10 +108,11 @@ python test_audio.py
 
 If you encounter issues:
 
-1. **Audio device not found:**
-   - Check I2S connections
-   - Verify `/boot/config.txt` settings
-   - Reboot and check `aplay -l` and `arecord -l`
+1. **USB mic not found:**
+   - Check USB connection
+   - Run `arecord -l` to verify detection
+   - Try a different USB port
+   - Reboot the Pi4
 
 2. **Model loading errors:**
    - Ensure the .tflite file exists in the models directory
