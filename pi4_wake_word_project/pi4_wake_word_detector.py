@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Wake Word Detection System for Pi4 with I2S Microphone
+Wake Word Detection System for Pi4 with USB  Microphone
 Detects "Hey Moop" and triggers audio recording for further processing
 """
 
@@ -77,17 +77,26 @@ class WakeWordDetector:
         
         return interpreter
     
-    def setup_i2s_audio(self, device_name=None):
-        """Setup I2S microphone input"""
-        # Find I2S device
-        device_index = self.find_i2s_device(device_name)
+    def find_usb_mic_device(self, device_name=None):
+        """Find USB microphone device"""
+        for i in range(self.audio.get_device_count()):
+            device_info = self.audio.get_device_info_by_index(i)
+            device_name_str = str(device_info['name']).lower()
+            if 'usb' in device_name_str or 'mic' in device_name_str:
+                print(f"Found USB mic: {device_info['name']} (index: {i})")
+                return i
+            if device_name and device_name.lower() in device_name_str:
+                print(f"Found specified device: {device_info['name']} (index: {i})")
+                return i
+        return None
+
+    def setup_usb_audio(self, device_name=None):
+        """Setup USB microphone input"""
+        device_index = self.find_usb_mic_device(device_name)
         if device_index is None:
-            print("Warning: I2S device not found, using default input device")
+            print("Warning: USB mic not found, using default input device")
             device_index = self.audio.get_default_input_device_info()['index']
-        
         print(f"Using audio device index: {device_index}")
-        
-        # Open audio stream
         self.stream = self.audio.open(
             format=pyaudio.paFloat32,
             channels=1,
@@ -97,27 +106,7 @@ class WakeWordDetector:
             frames_per_buffer=1024,
             stream_callback=self.audio_callback
         )
-        
         return device_index
-    
-    def find_i2s_device(self, device_name=None):
-        """Find I2S audio device"""
-        for i in range(self.audio.get_device_count()):
-            device_info = self.audio.get_device_info_by_index(i)
-            device_name_str = str(device_info['name'])
-            device_name_lower = device_name_str.lower()
-            
-            # Look for I2S devices
-            if any(keyword in device_name_lower for keyword in ['i2s', 'mic', 'microphone']):
-                print(f"Found I2S device: {device_info['name']} (index: {i})")
-                return i
-            
-            # If specific device name provided, match it
-            if device_name and device_name.lower() in device_name_lower:
-                print(f"Found specified device: {device_info['name']} (index: {i})")
-                return i
-        
-        return None
     
     def audio_callback(self, in_data, frame_count, time_info, status):
         """Callback for audio stream - called in separate thread"""
@@ -313,8 +302,8 @@ def main():
         # Initialize detector
         detector = WakeWordDetector()
         
-        # Setup I2S audio
-        detector.setup_i2s_audio()
+        # Setup USB audio
+        detector.setup_usb_audio()
         
         # Start listening
         detector.start_listening()
@@ -322,10 +311,10 @@ def main():
     except Exception as e:
         print(f"Error: {e}")
         print("\nTroubleshooting tips:")
-        print("1. Make sure your I2S microphone is properly connected")
+        print("1. Make sure your USB microphone is properly connected")
         print("2. Check if the model file exists: models/wake_word_detector_test.tflite")
         print("3. Install required packages: pip install pyaudio librosa tensorflow soundfile")
-        print("4. For I2S setup, you may need to configure /boot/config.txt")
+        print("4. Use 'arecord -l' to check for USB mic detection")
 
 if __name__ == "__main__":
     main() 
