@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Simple audio test script for I2S microphone on Pi4
-Use this to verify your I2S microphone is working before running the wake word detector
+Simple audio test script for USB microphone on Pi4
+Use this to verify your USB microphone is working before running the wake word detector
 """
 
 import pyaudio
@@ -26,27 +26,21 @@ def test_audio_devices():
     
     p.terminate()
 
-def find_i2s_device():
-    """Find I2S microphone device"""
+def find_usb_mic_device():
     p = pyaudio.PyAudio()
-    
-    i2s_device = None
+    usb_device = None
     for i in range(p.get_device_count()):
         info = p.get_device_info_by_index(i)
         device_name = str(info['name']).lower()
-        
-        # Look for I2S devices
-        if any(keyword in device_name for keyword in ['i2s', 'mic', 'microphone']):
-            i2s_device = i
-            print(f"Found I2S device: {info['name']} (index: {i})")
+        if 'usb' in device_name or 'mic' in device_name:
+            usb_device = i
+            print(f"Found USB mic: {info['name']} (index: {i})")
             break
-    
-    if i2s_device is None:
-        print("No I2S device found, using default input device")
-        i2s_device = p.get_default_input_device_info()['index']
-    
+    if usb_device is None:
+        print("No USB mic found, using default input device")
+        usb_device = p.get_default_input_device_info()['index']
     p.terminate()
-    return i2s_device
+    return usb_device
 
 def record_audio_test(device_index, duration=5):
     """Record audio for testing"""
@@ -142,7 +136,7 @@ def main():
         
         # Step 2: Find I2S device
         print("Step 2: Finding I2S device...")
-        device_index = find_i2s_device()
+        device_index = find_usb_mic_device()
         
         # Step 3: Record test audio
         print(f"\nStep 3: Recording test audio...")
