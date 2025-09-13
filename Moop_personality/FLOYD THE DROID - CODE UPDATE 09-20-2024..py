@@ -154,7 +154,7 @@ def capture_image_and_encode():  # Captures a single image from the camera
 
 
 
-
+"""
 def test_servos():
     print("Testing Servos.......")
     Board.setPWMServoPulse(1, 2200, 600) #(grabber) 1500=closed, 2500=open
@@ -330,7 +330,6 @@ def stop_motors():
     Board.setMotor(4, 0)
     time.sleep(1.0)
 
-
 def play_edm():
     with subprocess.Popen(['mpg123', '-q', '-f', '12000', '/home/pi/MasterPi/HiwonderSDK/MP3s/2edm.mp3']) as process:
         time.sleep(18)
@@ -376,7 +375,8 @@ def pause_gpt():
     print("Pausing API calls. Say any command to restart...\n")
     global gpt_paused
     gpt_paused = True
-      
+
+"""
 def wake_up():
     global gpt_paused
     gpt_paused = False
@@ -399,7 +399,7 @@ def exit_program():
 
 
 ################################################################################    
-
+"""
 
 #3 - THESE ARE THE FUNCTIONS FOR FLOYD'S RANDOM "FLAIR" ACTIONS
 def execute_flares():
@@ -580,7 +580,7 @@ def flair_20():
     # Board.RGB.setPixelColor(0, Board.PixelColor(0, 0, 0))  # LED CONTROL DISABLED
     # Board.RGB.show()  # LED CONTROL DISABLED    
     
-    
+    """
 ################################################################################
 
 
@@ -757,7 +757,7 @@ def send_text_to_openai():
 
 
 #6 - THIS DICTIONARY LISTS ALL THE POSSIBLE VOICE COMMANDS FLOYD RECOGNIZES
-voice_commands = {
+voice_commands = {"""
     # "test servos": test_servos,  # SERVO CONTROL DISABLED
     # "arm down": arm_down,  # SERVO CONTROL DISABLED
     # "arm up": arm_up,  # SERVO CONTROL DISABLED
@@ -802,7 +802,7 @@ voice_commands = {
     # "disgust": eyes_green,  # LED CONTROL DISABLED
     # "sadness": eyes_blue,  # LED CONTROL DISABLED
     # "fear": eyes_purple,  # LED CONTROL DISABLED
-    
+    """
     "pause": pause_gpt,
     "wake up": wake_up,
     "exit": exit_program,
